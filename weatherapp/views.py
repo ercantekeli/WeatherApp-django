@@ -1,10 +1,9 @@
 from weatherapp.models import City
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from decouple import config
 import requests
 from pprint import pprint
 from django.contrib import messages
-
 
 def home(request):
     API_key = config('API_KEY')
@@ -23,6 +22,7 @@ def home(request):
                 messages.success(request, 'City added')
         else:
             messages.error(request, 'There is no city with this name')
+        return redirect('home')
 
 
     city_data = []
@@ -35,7 +35,8 @@ def home(request):
         content = response.json()
 
         data = {
-        'city' : content['name'],
+        # 'city' : content['name'],
+        'city' : city,
         'temp' : content['main']['temp'],
         'desc': content['weather'][0]['description'],
         'icon' : content['weather'][0]['icon']
@@ -49,3 +50,11 @@ def home(request):
 
 
     return render(request, 'weatherapp/home.html', context)
+
+
+
+def delete_city(request, id):
+    city = get_object_or_404(City, id=id)
+    city.delete()
+    messages.success(request, 'City deleted')
+    return redirect('home')
